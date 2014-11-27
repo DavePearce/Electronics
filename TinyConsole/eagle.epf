@@ -367,7 +367,7 @@ UsedLibrary="/Users/djp/pkg/Amtel-AVR-Library/avr-6.lbr"
 
 [Win_1]
 Type="Control Panel"
-Loc="99 101 1235 704"
+Loc="99 99 1235 702"
 State=2
 Number=0
 
