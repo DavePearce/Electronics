@@ -139,7 +139,9 @@ void draw_at(int x, int y, int data[], int color) {
    }    
 }
 
-int has_landed(int data[], int x, int y) {
+// Check whether or not the current piece has landed
+// and or whether or not the arena is "full"
+int next_state(int data[], int x, int y) {
    // Center the piece data
    int sx = x - 1;
    // Now read the display
@@ -196,6 +198,59 @@ void fill_if(int from, int to) {
   }
 }
 
+void fill_lines(int start, int end, int colour) {
+  for(int i=start;i!=end;++i) {
+     for(int j=0;j!=8;++j) {
+        display[j][i] = colour; 
+     }
+  }
+  refresh();
+  delay(25);  
+}
+
+// remove lines upto but not including end
+void remove_lines(int start, int end) {
+  fill_lines(start,end,YELLOW);
+  fill_lines(start,end,RED);
+  fill_lines(start,end,GREEN);  
+  int diff = end - start;
+  for(int i=start-1;i>=0;i=i-1) {
+     for(int j=0;j!=8;++j) {
+         display[j][i+diff] = display[j][i];
+         display[j][i] = OFF;
+     } 
+  }
+}
+
+int is_full_line(int line) {
+    for(int j=0;j!=8;++j) {
+      if(display[j][line] == OFF) {
+         return 0; 
+      }
+    }
+    return 1;
+}
+
+void check_lines() {
+   int start = -1;
+   for(int i=0;i<8;++i) {
+      if(is_full_line(i) == 1) {
+         if(start == -1) {
+           // start of current block
+           start = i;
+         }
+      } else if(start != -1) {
+         // end of current block
+         remove_lines(start,i);
+         start = -1; 
+      }
+   }
+   //
+   if(start != -1) {
+     remove_lines(start,8);
+   }
+}
+
 void end_sequence() {
   fill_if(OFF,YELLOW);
   refresh();
@@ -210,7 +265,11 @@ void end_sequence() {
 
 /* === Game Loop === */
 
-int landed = 1; // indicates whether current drop finished
+const int PLAYING = 0;
+const int LANDED = 1;
+const int RESTART = 2;
+
+int state = RESTART; 
 int piece_num = 0;
 int piece_col = 0;
 int piece[16];
@@ -218,35 +277,38 @@ int x = 3;
 int y = -2;
 
 void loop() {
-  if(landed == 2) {
-    // Game over
+  switch(state) {
+  case RESTART:  
     end_sequence();
     fill(OFF);
-    landed = 1; // reset         
-  } else if(landed == 1) {
+    state = LANDED; // reset         
+    break;
+  case LANDED:
+    check_lines();
     initialise_piece(piece,piece_num);
     piece_num = (piece_num + 1) % 6;
     piece_col = (piece_col + 1) % 3;
-    landed = 0;
+    state = PLAYING;
     x = 3;
     y = -2;
-  } else {
+    break;
+  case PLAYING:
     // First, take piece off board
     draw_at(x,y,piece,OFF);
     // Now, apply user actions
     int joy_x = read_joystick(JOYSTICK_X);
-    if(joy_x < 2) {
+    if(joy_x < 3) {
        x = x + 1;
-    } else if(joy_x > 6) {
+    } else if(joy_x > 5) {
        x = x - 1; 
     }
     int joy_y = read_joystick(JOYSTICK_Y);
-    if(joy_y > 6) {
+    if(joy_y > 5) {
        rotate(piece); 
     }
     // Now, apply gravity (if possible)
-    landed = has_landed(piece,x,y);
-    if(landed == 0) {
+    state = next_state(piece,x,y);
+    if(state == PLAYING) {
       // Gravity applies!
       y = (y + 1) % 8;
     }
