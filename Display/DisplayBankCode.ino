@@ -1,6 +1,6 @@
 
-const int SER = 2;
-const int RCLK = 1;
+const int SER = 3;
+const int RCLK = 4;
 const int SRCLK = 0;
 
 void setup() {
