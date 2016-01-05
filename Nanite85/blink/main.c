@@ -18,17 +18,17 @@ int main (void)
     // flash# 1:
     // set PB0 high
     PORTB = 0b00000001; 
-    _delay_ms(20);
+    _delay_ms(200);
     // set all low
     PORTB = 0b00000000;
-    _delay_ms(20);
+    _delay_ms(200);
 
     // set PB0 high
     PORTB = 0b00000001; 
-    _delay_ms(200);
+    _delay_ms(2000);
     // set all low
     PORTB = 0b00000000;
-    _delay_ms(200);
+    _delay_ms(2000);
   }
  
   return 1;
