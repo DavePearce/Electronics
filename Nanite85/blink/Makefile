@@ -6,9 +6,12 @@ PROGRAMMER = -c usbtiny
 AVRDUDE = avrdude $(PROGRAMMER) -p $(DEVICE)
 COMPILE = avr-gcc -Wall -Os -DF_CPU=$(CLOCK) -mmcu=$(DEVICE)
 
-OBJECTS    = main.o
+OBJECTS    = main.s
 
 all:	main.hex
+
+%.s : %.c
+	$(COMPILE) -S -o $@ $<
 
 %.o : %.c
 	$(COMPILE) -c -o $@ $<
